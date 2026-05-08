@@ -1,5 +1,5 @@
 const SHEET_URL = 'https://opensheet.elk.sh/1g-GgmfkSMtES2p6-2tzSw5LsIFRe6dWd58aKOShPWVM/Sheet1';
-const TOMSK_CENTER = [56.4846, 84.9482];
+const TOMSK_CENTER = [56.4842, 84.9658];
 const DEFAULT_ZOOM = 15;
 
 const CATEGORY_LABELS = {
