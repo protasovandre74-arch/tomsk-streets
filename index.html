@@ -2,60 +2,83 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Инфокарта Томска</title>
+  <link rel="stylesheet" href="style.css">
   <script src="https://api-maps.yandex.ru/2.1/?apikey=ba847bd2-a5d6-4a37-b4e7-e3b1116f93e9&lang=ru_RU"></script>
-  <style>
-    html, body, #map {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-    }
-
-    .sidebar {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      width: 320px;
-      max-height: calc(100vh - 40px);
-      overflow: auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.2);
-      font-family: Arial, sans-serif;
-    }
-
-    .filters button {
-      margin: 4px 4px 4px 0;
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-
-    .place-card img {
-      width: 100%;
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-  </style>
 </head>
 <body>
+  <div id="map" aria-label="Карта Томска"></div>
 
-<div id="map"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">Т</div>
+      <div>
+        <div class="brand-title">Инфокарта Томска</div>
+        <div class="brand-subtitle">места, улицы и городские истории</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="pill-button" type="button" id="about-button">О проекте</button>
+      <button class="pill-button accent" type="button" id="fit-button">Показать все</button>
+    </div>
+  </header>
 
-<div class="sidebar">
-  <h2>Инфокарта Томска</h2>
+  <aside class="panel" aria-label="Объекты карты">
+    <div class="panel-handle" aria-hidden="true"></div>
+    <section class="panel-section">
+      <div class="section-heading">
+        <div>
+          <h1>Городские слои</h1>
+          <p id="places-count">Загружаем объекты...</p>
+        </div>
+      </div>
 
-  <div class="filters">
-    <button data-category="all">Все</button>
-    <button data-category="architecture">Архитектура</button>
-    <button data-category="parks">Парки</button>
-    <button data-category="history">История</button>
+      <div class="filters" id="filters">
+        <button class="filter-button active" data-category="all" type="button">
+          <span class="dot all"></span>Все
+        </button>
+        <button class="filter-button" data-category="architecture" type="button">
+          <span class="dot architecture"></span>Архитектура
+        </button>
+        <button class="filter-button" data-category="parks" type="button">
+          <span class="dot parks"></span>Парки
+        </button>
+        <button class="filter-button" data-category="history" type="button">
+          <span class="dot history"></span>История
+        </button>
+      </div>
+    </section>
+
+    <section class="panel-section compact">
+      <div class="legend">
+        <div class="legend-item"><span class="bar architecture"></span><strong id="count-architecture">0</strong><small>архитектура</small></div>
+        <div class="legend-item"><span class="bar parks"></span><strong id="count-parks">0</strong><small>парки</small></div>
+        <div class="legend-item"><span class="bar history"></span><strong id="count-history">0</strong><small>история</small></div>
+      </div>
+    </section>
+
+    <section class="panel-section place-section">
+      <div id="place-info" class="place-info">
+        <div class="empty-state">
+          <span>Выберите объект на карте</span>
+          <p>Или используйте фильтры, чтобы посмотреть места одной категории.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-section list-section">
+      <h2>Объекты</h2>
+      <div id="places-list" class="places-list"></div>
+    </section>
+  </aside>
+
+  <div class="about-card" id="about-card" hidden>
+    <button type="button" class="close-button" id="close-about" aria-label="Закрыть">×</button>
+    <h2>О проекте</h2>
+    <p>Учебная интерактивная карта Томска. Данные загружаются из таблицы, а точки можно фильтровать по темам.</p>
   </div>
 
-  <div id="place-info">Выберите объект на карте</div>
-</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
