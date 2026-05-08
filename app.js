@@ -24,7 +24,7 @@ let activePlaceId = null;
 function init() {
   map = new ymaps.Map('map', {
     center: TOMSK_CENTER,
-    zoom: 13,
+    zoom: 15,
     controls: ['zoomControl', 'fullscreenControl']
   });
 
@@ -53,7 +53,7 @@ function loadPlaces() {
 
       updateCategoryCounts();
       applyFilter('all');
-      map.setCenter(TOMSK_CENTER, 13);
+      map.setCenter(TOMSK_CENTER, 15);
     })
     .catch(error => {
       console.error('Failed to load places:', error);
