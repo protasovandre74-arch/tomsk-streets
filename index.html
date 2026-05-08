@@ -1,10 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>$Title$</title>
+  <title>Инфокарта Томска</title>
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=ba847bd2-a5d6-4a37-b4e7-e3b1116f93e9&lang=ru_RU"></script>
+  <style>
+    html, body, #map {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    .sidebar {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      width: 320px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+      font-family: Arial, sans-serif;
+    }
+
+    .filters button {
+      margin: 4px 4px 4px 0;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .place-card img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
 <body>
-$END$
+
+<div id="map"></div>
+
+<div class="sidebar">
+  <h2>Инфокарта Томска</h2>
+
+  <div class="filters">
+    <button data-category="all">Все</button>
+    <button data-category="architecture">Архитектура</button>
+    <button data-category="parks">Парки</button>
+    <button data-category="history">История</button>
+  </div>
+
+  <div id="place-info">Выберите объект на карте</div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
