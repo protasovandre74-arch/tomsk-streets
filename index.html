@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Инфокарта Томска</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://a.basemaps.cartocdn.com">
+  <link rel="preconnect" href="https://b.basemaps.cartocdn.com">
+  <link rel="preconnect" href="https://c.basemaps.cartocdn.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="style.css">
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=ba847bd2-a5d6-4a37-b4e7-e3b1116f93e9&lang=ru_RU"></script>
 </head>
 <body class="is-loading">
   <div class="page-loader" id="page-loader" role="status" aria-live="polite">
@@ -90,6 +95,8 @@
     <p>Данные загружаются из таблицы, а точки можно фильтровать по темам.</p>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -44,10 +44,6 @@ body.is-loading .app-shell {
   transition: opacity .35s ease, transform .35s ease;
 }
 
-#map {
-  filter: saturate(.95) contrast(1.08) brightness(.68);
-}
-
 .page-loader {
   position: fixed;
   inset: 0;
@@ -518,6 +514,115 @@ h2 {
   color: var(--text);
   font-size: 22px;
   cursor: pointer;
+}
+
+.leaflet-container {
+  background: #0b1220;
+  color: var(--text);
+  font-family: Inter, Arial, sans-serif;
+}
+
+.leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid var(--line) !important;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.leaflet-control-zoom a {
+  width: 42px !important;
+  height: 42px !important;
+  border-bottom-color: rgba(255, 255, 255, .12) !important;
+  background: rgba(13, 19, 32, .92) !important;
+  color: var(--text) !important;
+  line-height: 42px !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(13, 19, 32, .72) !important;
+  color: var(--muted) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--blue) !important;
+}
+
+.place-marker-shell {
+  background: transparent;
+  border: 0;
+}
+
+.place-marker {
+  width: 24px;
+  height: 24px;
+  display: block;
+  border: 3px solid rgba(255, 255, 255, .92);
+  border-radius: 50%;
+  background: var(--marker-color);
+  box-shadow:
+    0 0 0 5px rgba(127, 180, 255, .18),
+    0 8px 22px rgba(0, 0, 0, .45);
+}
+
+.place-cluster {
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, .86);
+  border-radius: 50%;
+  background: rgba(255, 228, 92, .96);
+  color: #151515;
+  font-weight: 900;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .42);
+}
+
+.place-cluster span {
+  line-height: 1;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(23, 33, 55, .98);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.leaflet-popup-content {
+  margin: 14px;
+}
+
+.leaflet-popup-close-button {
+  color: var(--text) !important;
+}
+
+.popup-content {
+  max-width: 260px;
+}
+
+.popup-content strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.popup-content img {
+  width: 100%;
+  margin: 4px 0 10px;
+  border-radius: 12px;
+}
+
+.popup-content div,
+.popup-content p {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.popup-content p {
+  margin: 8px 0 0;
 }
 
 @media (max-width: 760px) {
