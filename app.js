@@ -1,4 +1,5 @@
 const SHEET_URL = 'https://opensheet.elk.sh/1g-GgmfkSMtES2p6-2tzSw5LsIFRe6dWd58aKOShPWVM/Sheet1';
+const TOMSK_CENTER = [56.4846, 84.9482];
 
 const CATEGORY_LABELS = {
   architecture: 'Архитектура',
@@ -22,8 +23,8 @@ let activePlaceId = null;
 
 function init() {
   map = new ymaps.Map('map', {
-    center: [56.4846, 84.9482],
-    zoom: 12,
+    center: TOMSK_CENTER,
+    zoom: 13,
     controls: ['zoomControl', 'fullscreenControl']
   });
 
@@ -52,7 +53,7 @@ function loadPlaces() {
 
       updateCategoryCounts();
       applyFilter('all');
-      fitVisiblePlaces();
+      map.setCenter(TOMSK_CENTER, 13);
     })
     .catch(error => {
       console.error('Failed to load places:', error);
