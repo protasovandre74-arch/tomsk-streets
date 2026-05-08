@@ -54,12 +54,14 @@ function loadPlaces() {
       updateCategoryCounts();
       applyFilter('all');
       map.setCenter(TOMSK_CENTER, 15);
+      showApp();
     })
     .catch(error => {
       console.error('Failed to load places:', error);
       document.getElementById('places-count').textContent = 'Не удалось загрузить объекты';
       document.getElementById('place-info').innerHTML =
         '<div class="empty-state"><span>Ошибка загрузки</span><p>Проверьте подключение к интернету или таблицу с данными.</p></div>';
+      showApp();
     });
 }
 
@@ -237,7 +239,7 @@ function getBalloonHtml(place) {
   return `
     <div style="max-width:250px;font-family:Arial,sans-serif">
       <strong>${escapeHtml(place.title)}</strong><br>
-      ${place.image ? `<img src="${escapeAttr(place.image)}" onerror="this.style.display='none'" style="width:100%;margin:8px 0;border-radius:10px;">` : ''}
+      ${place.image ? `<img src="${escapeAttr(place.image)}" loading="lazy" decoding="async" onerror="this.style.display='none'" style="width:100%;margin:8px 0;border-radius:10px;">` : ''}
       <div>${escapeHtml(place.address || '')}</div>
       <p>${escapeHtml(place.description || '')}</p>
     </div>
@@ -247,13 +249,18 @@ function getBalloonHtml(place) {
 function showPlaceInfo(place) {
   document.getElementById('place-info').innerHTML = `
     <div class="place-card">
-      ${place.image ? `<img src="${escapeAttr(place.image)}" alt="" onerror="this.replaceWith(createImageFallback())">` : getImageFallbackHtml()}
+      ${place.image ? `<img src="${escapeAttr(place.image)}" alt="" loading="lazy" decoding="async" onerror="this.replaceWith(createImageFallback())">` : getImageFallbackHtml()}
       <h3>${escapeHtml(place.title)}</h3>
       <p><strong>Категория:</strong> ${escapeHtml(getCategoryLabel(place.category))}</p>
       ${place.address ? `<p><strong>Адрес:</strong> ${escapeHtml(place.address)}</p>` : ''}
       ${place.description ? `<p>${escapeHtml(place.description)}</p>` : ''}
     </div>
   `;
+}
+
+function showApp() {
+  document.body.classList.remove('is-loading');
+  document.body.classList.add('is-ready');
 }
 
 function normalizeImageUrl(url) {

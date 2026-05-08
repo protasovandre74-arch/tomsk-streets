@@ -32,8 +32,118 @@ body {
   font-family: Inter, Arial, sans-serif;
 }
 
+body.is-loading .app-shell {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+.app-shell {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .35s ease, transform .35s ease;
+}
+
 #map {
   filter: saturate(.95) contrast(1.08) brightness(.68);
+}
+
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(127, 180, 255, .18), transparent 32%),
+    radial-gradient(circle at 75% 80%, rgba(236, 122, 199, .16), transparent 30%),
+    rgba(10, 16, 27, .92);
+  backdrop-filter: blur(10px);
+  transition: opacity .35s ease, visibility .35s ease;
+}
+
+body.is-ready .page-loader {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-card {
+  width: min(360px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 28px;
+  background: rgba(23, 33, 55, .92);
+  box-shadow: var(--shadow);
+}
+
+.loader-mark {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--yellow);
+  border-radius: 50%;
+  background: #0d1728;
+  color: var(--yellow);
+  font-size: 36px;
+  font-weight: 900;
+  animation: loader-pulse 1.4s ease-in-out infinite;
+}
+
+.loader-lines {
+  display: grid;
+  gap: 7px;
+  text-align: center;
+}
+
+.loader-lines strong {
+  font-size: 20px;
+}
+
+.loader-lines span {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.loader-progress {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .1);
+}
+
+.loader-progress span {
+  width: 42%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--yellow), var(--pink));
+  animation: loader-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loader-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(255, 228, 92, 0);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 28px rgba(255, 228, 92, .28);
+  }
+}
+
+@keyframes loader-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
 }
 
 .topbar {

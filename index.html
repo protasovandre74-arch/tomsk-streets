@@ -7,10 +7,21 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://api-maps.yandex.ru/2.1/?apikey=ba847bd2-a5d6-4a37-b4e7-e3b1116f93e9&lang=ru_RU"></script>
 </head>
-<body>
+<body class="is-loading">
+  <div class="page-loader" id="page-loader" role="status" aria-live="polite">
+    <div class="loader-card">
+      <div class="loader-mark">Т</div>
+      <div class="loader-lines">
+        <strong>Загружаем карту Томска</strong>
+        <span>Получаем городские объекты из таблицы</span>
+      </div>
+      <div class="loader-progress" aria-hidden="true"><span></span></div>
+    </div>
+  </div>
+
   <div id="map" aria-label="Карта Томска"></div>
 
-  <header class="topbar">
+  <header class="topbar app-shell">
     <div class="brand">
       <div class="brand-mark">Т</div>
       <div>
@@ -24,7 +35,7 @@
     </div>
   </header>
 
-  <aside class="panel" aria-label="Объекты карты">
+  <aside class="panel app-shell" aria-label="Объекты карты">
     <div class="panel-handle" aria-hidden="true"></div>
     <section class="panel-section">
       <div class="section-heading">
