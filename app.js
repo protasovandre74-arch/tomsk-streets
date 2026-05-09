@@ -1,6 +1,7 @@
 const SHEET_URL = 'https://opensheet.elk.sh/1g-GgmfkSMtES2p6-2tzSw5LsIFRe6dWd58aKOShPWVM/Sheet1';
-const TOMSK_CENTER = [56.4842, 84.9658];
-const DEFAULT_ZOOM = 15;
+const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/dark';
+const TOMSK_CENTER = [84.9658, 56.4842];
+const DEFAULT_ZOOM = 15.2;
 
 const CATEGORY_LABELS = {
   architecture: 'Архитектура',
@@ -13,52 +14,52 @@ const CATEGORY_LABELS = {
   monument: 'Памятники'
 };
 
+const EMPTY_FEATURE_COLLECTION = {
+  type: 'FeatureCollection',
+  features: []
+};
+
 let map;
-let tileLayer;
-let markersLayer;
+let popup;
 let allPlaces = [];
 let visiblePlaces = [];
+let placesById = new Map();
 let activeCategory = 'all';
 let activePlaceId = null;
 let placesLoaded = false;
-let mapTilesLoaded = false;
+let mapLoaded = false;
 
 document.addEventListener('DOMContentLoaded', init);
 
 function init() {
-  map = L.map('map', {
+  map = new maplibregl.Map({
+    container: 'map',
+    style: MAP_STYLE_URL,
     center: TOMSK_CENTER,
     zoom: DEFAULT_ZOOM,
-    zoomControl: false,
-    preferCanvas: true
+    pitch: 58,
+    bearing: -18,
+    antialias: true,
+    attributionControl: true
   });
 
-  L.control.zoom({
-    position: 'bottomleft'
-  }).addTo(map);
+  map.addControl(new maplibregl.NavigationControl({
+    visualizePitch: true
+  }), 'bottom-left');
 
-  tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 20,
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-  }).addTo(map);
-
-  tileLayer.once('load', () => {
-    mapTilesLoaded = true;
+  map.on('load', () => {
+    mapLoaded = true;
+    addBuildingLayer();
+    addPlacesSourceAndLayers();
+    renderPlaces(visiblePlaces);
     showAppWhenReady();
   });
 
-  setTimeout(() => {
-    mapTilesLoaded = true;
+  map.on('error', event => {
+    console.error('MapLibre error:', event.error || event);
+    mapLoaded = true;
     showAppWhenReady();
-  }, 3500);
-
-  markersLayer = L.markerClusterGroup({
-    showCoverageOnHover: false,
-    maxClusterRadius: 42,
-    spiderfyOnMaxZoom: true,
-    disableClusteringAtZoom: 17,
-    iconCreateFunction: createClusterIcon
-  }).addTo(map);
+  });
 
   bindUi();
   loadPlaces();
@@ -71,10 +72,16 @@ function loadPlaces() {
       allPlaces = rows
         .map(normalizePlace)
         .filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng));
+      placesById = new Map(allPlaces.map(place => [String(place.id), place]));
 
       updateCategoryCounts();
       applyFilter('all');
-      map.setView(TOMSK_CENTER, DEFAULT_ZOOM);
+      map.jumpTo({
+        center: TOMSK_CENTER,
+        zoom: DEFAULT_ZOOM,
+        pitch: 58,
+        bearing: -18
+      });
       placesLoaded = true;
       showAppWhenReady();
     })
@@ -122,6 +129,155 @@ function bindUi() {
   });
 }
 
+function addBuildingLayer() {
+  if (map.getLayer('tomsk-3d-buildings')) {
+    return;
+  }
+
+  const labelLayer = findFirstSymbolLayer();
+
+  try {
+    map.addLayer({
+      id: 'tomsk-3d-buildings',
+      source: 'openmaptiles',
+      'source-layer': 'building',
+      filter: ['==', ['geometry-type'], 'Polygon'],
+      type: 'fill-extrusion',
+      minzoom: 14,
+      paint: {
+        'fill-extrusion-color': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14,
+          '#24324b',
+          17,
+          '#3f5172'
+        ],
+        'fill-extrusion-height': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          14,
+          0,
+          15,
+          ['coalesce', ['get', 'render_height'], ['get', 'height'], 18]
+        ],
+        'fill-extrusion-base': [
+          'coalesce',
+          ['get', 'render_min_height'],
+          ['get', 'min_height'],
+          0
+        ],
+        'fill-extrusion-opacity': .62
+      }
+    }, labelLayer);
+  } catch (error) {
+    console.warn('3D buildings layer was not added:', error);
+  }
+}
+
+function addPlacesSourceAndLayers() {
+  if (map.getSource('places')) {
+    return;
+  }
+
+  map.addSource('places', {
+    type: 'geojson',
+    data: EMPTY_FEATURE_COLLECTION,
+    cluster: true,
+    clusterRadius: 44,
+    clusterMaxZoom: 16
+  });
+
+  map.addLayer({
+    id: 'place-clusters',
+    type: 'circle',
+    source: 'places',
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': '#ffe45c',
+      'circle-radius': [
+        'step',
+        ['get', 'point_count'],
+        19,
+        8,
+        24,
+        18,
+        30
+      ],
+      'circle-stroke-color': 'rgba(255,255,255,.88)',
+      'circle-stroke-width': 2,
+      'circle-opacity': .94
+    }
+  });
+
+  map.addLayer({
+    id: 'place-cluster-count',
+    type: 'symbol',
+    source: 'places',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': ['get', 'point_count_abbreviated'],
+      'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+      'text-size': 13
+    },
+    paint: {
+      'text-color': '#171717'
+    }
+  });
+
+  map.addLayer({
+    id: 'place-points-halo',
+    type: 'circle',
+    source: 'places',
+    filter: ['!', ['has', 'point_count']],
+    paint: {
+      'circle-radius': 16,
+      'circle-color': [
+        'match',
+        ['get', 'category'],
+        'architecture', 'rgba(236,122,199,.18)',
+        'parks', 'rgba(117,221,115,.18)',
+        'history', 'rgba(255,228,92,.18)',
+        'rgba(127,180,255,.18)'
+      ]
+    }
+  });
+
+  map.addLayer({
+    id: 'place-points',
+    type: 'circle',
+    source: 'places',
+    filter: ['!', ['has', 'point_count']],
+    paint: {
+      'circle-radius': [
+        'case',
+        ['==', ['get', 'id'], activePlaceId || ''],
+        10,
+        8
+      ],
+      'circle-color': [
+        'match',
+        ['get', 'category'],
+        'architecture', '#ec7ac7',
+        'parks', '#75dd73',
+        'history', '#ffe45c',
+        '#7fb4ff'
+      ],
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 2.6
+    }
+  });
+
+  map.on('click', 'place-clusters', onClusterClick);
+  map.on('click', 'place-points', onPointClick);
+  map.on('mouseenter', 'place-clusters', setPointerCursor);
+  map.on('mouseenter', 'place-points', setPointerCursor);
+  map.on('mouseleave', 'place-clusters', resetCursor);
+  map.on('mouseleave', 'place-points', resetCursor);
+}
+
 function applyFilter(category) {
   activeCategory = category;
   activePlaceId = null;
@@ -138,25 +294,35 @@ function applyFilter(category) {
   renderPlacesList(visiblePlaces);
   updatePlacesCount();
   showEmptyState();
+
+  if (popup) {
+    popup.remove();
+  }
 }
 
 function renderPlaces(places) {
-  markersLayer.clearLayers();
+  const source = map && map.getSource('places');
+  if (!source) {
+    return;
+  }
 
-  places.forEach(place => {
-    const marker = L.marker([place.lat, place.lng], {
-      icon: createPlaceIcon(place),
-      title: place.title
-    });
-
-    marker.bindPopup(getBalloonHtml(place), {
-      maxWidth: 280,
-      className: 'place-popup'
-    });
-
-    marker.on('click', () => selectPlace(place, false));
-    markersLayer.addLayer(marker);
+  source.setData({
+    type: 'FeatureCollection',
+    features: places.map(place => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [place.lng, place.lat]
+      },
+      properties: {
+        id: String(place.id),
+        title: place.title,
+        category: normalizeCategory(place.category)
+      }
+    }))
   });
+
+  updatePointStyle();
 }
 
 function renderPlacesList(places) {
@@ -184,17 +350,72 @@ function renderPlacesList(places) {
   });
 }
 
+function onClusterClick(event) {
+  const features = map.queryRenderedFeatures(event.point, {
+    layers: ['place-clusters']
+  });
+  const clusterId = features[0]?.properties?.cluster_id;
+  const source = map.getSource('places');
+
+  if (clusterId === undefined || !source) {
+    return;
+  }
+
+  const zoomResult = source.getClusterExpansionZoom(clusterId);
+  Promise.resolve(zoomResult).then(zoom => {
+    map.easeTo({
+      center: features[0].geometry.coordinates,
+      zoom,
+      pitch: 58,
+      duration: 450
+    });
+  }).catch(error => {
+    console.warn('Cluster expansion failed:', error);
+  });
+}
+
+function onPointClick(event) {
+  const feature = event.features && event.features[0];
+  const place = placesById.get(String(feature?.properties?.id));
+
+  if (!place) {
+    return;
+  }
+
+  selectPlace(place, false);
+}
+
 function selectPlace(place, moveMap) {
-  activePlaceId = place.id;
+  activePlaceId = String(place.id);
   showPlaceInfo(place);
   renderPlacesList(visiblePlaces);
+  updatePointStyle();
+  openPlacePopup(place);
 
   if (moveMap) {
-    map.setView([place.lat, place.lng], Math.max(map.getZoom(), DEFAULT_ZOOM), {
-      animate: true,
-      duration: .35
+    map.easeTo({
+      center: [place.lng, place.lat],
+      zoom: Math.max(map.getZoom(), DEFAULT_ZOOM),
+      pitch: 60,
+      bearing: map.getBearing(),
+      duration: 500
     });
   }
+}
+
+function openPlacePopup(place) {
+  if (popup) {
+    popup.remove();
+  }
+
+  popup = new maplibregl.Popup({
+    className: 'place-popup',
+    maxWidth: '300px',
+    offset: 18
+  })
+    .setLngLat([place.lng, place.lat])
+    .setHTML(getBalloonHtml(place))
+    .addTo(map);
 }
 
 function fitVisiblePlaces() {
@@ -202,11 +423,23 @@ function fitVisiblePlaces() {
     return;
   }
 
-  const bounds = L.latLngBounds(visiblePlaces.map(place => [place.lat, place.lng]));
+  const bounds = visiblePlaces.reduce((lngLatBounds, place) => (
+    lngLatBounds.extend([place.lng, place.lat])
+  ), new maplibregl.LngLatBounds(
+    [visiblePlaces[0].lng, visiblePlaces[0].lat],
+    [visiblePlaces[0].lng, visiblePlaces[0].lat]
+  ));
+
   map.fitBounds(bounds, {
-    paddingTopLeft: [80, 90],
-    paddingBottomRight: [460, 120],
-    maxZoom: 16
+    padding: {
+      top: 110,
+      right: window.innerWidth > 760 ? 470 : 32,
+      bottom: window.innerWidth > 760 ? 110 : Math.round(window.innerHeight * .54),
+      left: 70
+    },
+    maxZoom: 16,
+    pitch: 58,
+    duration: 650
   });
 }
 
@@ -262,33 +495,36 @@ function showPlaceInfo(place) {
   `;
 }
 
-function createPlaceIcon(place) {
-  const category = normalizeCategory(place.category);
-  const color = getColorByCategory(category);
+function updatePointStyle() {
+  if (!map || !map.getLayer('place-points')) {
+    return;
+  }
 
-  return L.divIcon({
-    className: 'place-marker-shell',
-    html: `<span class="place-marker" style="--marker-color:${color}"></span>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12]
-  });
+  map.setPaintProperty('place-points', 'circle-radius', [
+    'case',
+    ['==', ['get', 'id'], activePlaceId || ''],
+    10,
+    8
+  ]);
 }
 
-function createClusterIcon(cluster) {
-  const count = cluster.getChildCount();
+function findFirstSymbolLayer() {
+  const layers = map.getStyle().layers || [];
+  return layers.find(layer => layer.type === 'symbol')?.id;
+}
 
-  return L.divIcon({
-    html: `<span>${count}</span>`,
-    className: 'place-cluster',
-    iconSize: [42, 42]
-  });
+function setPointerCursor() {
+  map.getCanvas().style.cursor = 'pointer';
+}
+
+function resetCursor() {
+  map.getCanvas().style.cursor = '';
 }
 
 function showAppWhenReady() {
-  if (placesLoaded && mapTilesLoaded) {
+  if (placesLoaded && mapLoaded) {
     requestAnimationFrame(() => {
-      map.invalidateSize();
+      map.resize();
       document.body.classList.remove('is-loading');
       document.body.classList.add('is-ready');
     });
@@ -336,19 +572,6 @@ function normalizeCategory(category) {
 
 function getCategoryLabel(category) {
   return CATEGORY_LABELS[normalizeCategory(category)] || 'Другое';
-}
-
-function getColorByCategory(category) {
-  switch (normalizeCategory(category)) {
-    case 'architecture':
-      return '#ec7ac7';
-    case 'parks':
-      return '#75dd73';
-    case 'history':
-      return '#ffe45c';
-    default:
-      return '#7fb4ff';
-  }
 }
 
 function escapeHtml(value) {
