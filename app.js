@@ -1,7 +1,7 @@
 const SHEET_URL = 'https://opensheet.elk.sh/1g-GgmfkSMtES2p6-2tzSw5LsIFRe6dWd58aKOShPWVM/Sheet1';
 const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/dark';
-const TOMSK_CENTER = [84.9658, 56.4842];
-const DEFAULT_ZOOM = 15.2;
+const TOMSK_CENTER = [84.9595, 56.4842];
+const DEFAULT_ZOOM = 16;
 
 const CATEGORY_LABELS = {
   architecture: 'Архитектура',
@@ -150,9 +150,9 @@ function addBuildingLayer() {
           ['linear'],
           ['zoom'],
           14,
-          '#24324b',
+          '#334566',
           17,
-          '#3f5172'
+          '#6f86ad'
         ],
         'fill-extrusion-height': [
           'interpolate',
@@ -161,7 +161,7 @@ function addBuildingLayer() {
           14,
           0,
           15,
-          ['coalesce', ['get', 'render_height'], ['get', 'height'], 18]
+          ['coalesce', ['get', 'render_height'], ['get', 'height'], 24]
         ],
         'fill-extrusion-base': [
           'coalesce',
@@ -169,7 +169,7 @@ function addBuildingLayer() {
           ['get', 'min_height'],
           0
         ],
-        'fill-extrusion-opacity': .62
+        'fill-extrusion-opacity': .82
       }
     }, labelLayer);
   } catch (error) {
